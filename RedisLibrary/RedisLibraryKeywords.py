@@ -12,13 +12,14 @@ __version__ = VERSION
 class RedisLibraryKeywords(object):
 
     @keyword('Connect To Redis')
-    def connect_to_redis(self, redis_host, redis_port=6379, db=0): # pragma: no cover
+    def connect_to_redis(self, redis_host, redis_port=6379, db=0, **kwargs): # pragma: no cover
         """Connect to the Redis server.
 
         Arguments:
             - redis_host: hostname or IP address of the Redis server.
             - redis_port: Redis port number (default=6379)
             - db: Redis keyspace number (default=0)
+            - **kwargs: A list of optional arguments found at http://redis-py.readthedocs.io/en/latest/
 
         Return redis connection object
 
@@ -26,7 +27,7 @@ class RedisLibraryKeywords(object):
         | ${redis_conn}=   | Connect To Redis |  redis-dev.com | 6379 |
         """
         try:
-            redis_conn = redis.StrictRedis(host=redis_host, port=redis_port, db=db)
+            redis_conn = redis.StrictRedis(host=redis_host, port=redis_port, db=db, **kwargs)
         except Exception as ex:
             logger.error(str(ex))
             raise Exception(str(ex))
@@ -127,7 +128,7 @@ class RedisLibraryKeywords(object):
         """
         return redis_conn.delete(key)
 
-    @keyword('Redis Key Should Be Exist')
+    @keyword('Check if Key Exists')
     def check_if_key_exits(self, redis_conn, key):
         """ Keyword will fail if specify key doesn't exist in Redis
 
@@ -142,4 +143,14 @@ class RedisLibraryKeywords(object):
             logger.error("Key " + key +" doesn't exist in Redis.")
             raise AssertionError
 
-
+    @keyword('Return Redis Keys')
+    def return_redis_keys(self, redis_conn, pattern='*'):
+        """ Returns a list of all keys mating the pattern.
+        Arguments:
+            - redis_conn: Redis connection object
+            - pattern: string pattern to match
+        Examples:
+        | ${redis_keys} | Return Redis Keys | ${redis_conn} | |
+        | ${redis_keys} | Return Redis Keys | ${redis_conn} | BA5674923801 |
+        """
+        return redis_conn.keys(pattern)
